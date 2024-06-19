@@ -7,40 +7,69 @@ const int LED = LED_BUILTIN;
 int Threshold = 550;
 
 PulseSensorPlayground pulseSensor;
+#define LM35 A0
+#define RED 7
+#define GREEN 6
+
+float lm_value;
+int tempc;
 
 void draw(void) {
   u8g.setFont(u8g_font_unifont);
   u8g.drawStr(0, 22, "BPM: ");
   u8g.setPrintPos(50, 22);
   u8g.print(pulseSensor.getBeatsPerMinute());
+  
+  
+  u8g.drawStr(0, 40, "Temp");
+  u8g.setPrintPos(50, 40);
+  u8g.print(tempc);
+  
+ 
+  u8g.drawStr(80, 40, "C");
 }
 
 void setup() {
+  Serial.begin(9600);
+  pinMode(RED, OUTPUT);
+  pinMode(GREEN, OUTPUT);
   pulseSensor.analogInput(PulseWire);
   pulseSensor.blinkOnPulse(LED);
   pulseSensor.setThreshold(Threshold);
 
   if (pulseSensor.begin()) {
-    // Optional: 
     // Serial.println("PulseSensor object created!");
   }
 
-  u8g.setColorIndex(1); // pixel on
+  u8g.setColorIndex(1); 
   pinMode(8, OUTPUT);
 }
 
 void loop() {
-  // picture loop
+  
   u8g.firstPage();  
   do {
     draw();
   } while (u8g.nextPage());
 
-  // Check for heartbeat
+ 
   if (pulseSensor.sawStartOfBeat()) {
+    
+    // Serial.println("♥  A HeartBeat");
+  }
 
-    // Serial.println("♥  A HeartBeat Happened ! ");
+  lm_value = analogRead(LM35);
+  tempc = int((lm_value * 500) / 1023); 
+  
+  if (tempc > 60) {
+    digitalWrite(RED, HIGH);
+    digitalWrite(GREEN, LOW);
+  }
+  else {
+    digitalWrite(GREEN, HIGH);
+    digitalWrite(RED, LOW);
   }
 
   delay(20);
 }
+
